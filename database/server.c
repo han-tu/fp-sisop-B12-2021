@@ -203,18 +203,23 @@ void dml(char str[]) {
     }
 
     bzero(temp, 512) ; strcpy(temp, str) ;
+    rest = temp ;
+    i = 0 ;
 
     while ((token = strtok_r(rest, " ", &rest))) {
-        if (i == jumlahKata) {
-            strncpy(token, token, strlen(token) - 1) ;
+        if (i == jumlahKata - 1) {
+            char* semicolon = strchr(token, ';') ;
+            char temp2[512] ; bzero(temp2, 512) ;
+            strncpy(temp2, token, strlen(token) - strlen(semicolon)) ;
+            token = temp2 ;
         }
 
         strcpy(argv[i], token) ;
-
+        // printf("%s ", argv[i]) ;
         i++ ;
     }
-
-    parse (jumlahKata + 1, argv) ;
+    // printf("\n") ;
+    parse (jumlahKata, argv) ;
     
 }
 
@@ -657,8 +662,8 @@ int insert(int argc,char* argv[]){
         if(line[i]=='\t')colcount++;
         
     int incount=1;
-    for(int i=0;i<strlen(argv[4]);i++)
-        if(argv[4][i]==',')incount++;
+    for(int i=0;i<strlen(argv[3]);i++)
+        if(argv[3][i]==',')incount++;
         
     if(incount!=colcount+1){
     // printf("%d %d\n",incount,colcount);
@@ -670,7 +675,7 @@ int insert(int argc,char* argv[]){
     }
         
     FILE*  in=fopen(adrtmp,"a");
-    char* input=strtok(argv[4],"()");//hapus kurung
+    char* input=strtok(argv[3],"()");//hapus kurung
     char* token=NULL;
     token=strtok(input,",");
 
@@ -723,7 +728,7 @@ int del(int argc,char* argv[],int mode){
     char full[72];
     
     char* token=NULL;
-    strcpy(full,argv[5]);
+    strcpy(full,argv[4]);
     token=strtok(full,"=");
     strcpy(condition1,token);
     token=strtok(NULL,"=");
@@ -819,7 +824,7 @@ int upd(int argc,char* argv[],int mode){
     char set1[36];//kolom
     char set2[36];//value
     char* token=NULL;
-    token=strtok(argv[4],"=");
+    token=strtok(argv[3],"=");
     strcpy(set1,token);
     token=strtok(NULL,"=");
     strcpy(set2,token);
@@ -909,7 +914,7 @@ int upd(int argc,char* argv[],int mode){
     char condition2[35];//kondisi where kanan
     char* token=NULL;
 
-    token=strtok(argv[6],"=");
+    token=strtok(argv[5],"=");
     strcpy(condition1,token);
     token=strtok(NULL,"=");
     strcpy(condition2,token);
@@ -1038,7 +1043,7 @@ int selects(int argc,char* argv[], int mode){
         char condition1[36];
         char condition2[36];
         char* token=NULL;
-        token=strtok(argv[6],"=");
+        token=strtok(argv[5],"=");
         strcpy(condition1,token);
         token=strtok(NULL,"=");
         strcpy(condition2,token);
@@ -1118,25 +1123,25 @@ int selects(int argc,char* argv[], int mode){
 }
 
 int parse(int argc,char* argv[]){
-	if(strcmp(argv[1],"INSERT")==0)
+	if(strcmp(argv[0],"INSERT")==0)
 	insert(argc,argv);
 
-	else if(strcmp(argv[1],"SELECT")==0){
+	else if(strcmp(argv[0],"SELECT")==0){
 	int flagwhere=0,flagstar=0;
-    	if(strcmp(argv[2],"*")==0)flagstar=1;
+    	if(strcmp(argv[1],"*")==0)flagstar=1;
 	if(argc>5)flagwhere=1;
 	if(flagstar==1&&flagwhere==1)selects(argc,argv,2);
 	else if(flagstar==1&&flagwhere==0)selects(argc,argv,1);
 	}
 
-	else if(strcmp(argv[1],"DELETE")==0){
+	else if(strcmp(argv[0],"DELETE")==0){
 	if(argc>4)//ada where apa gak
         	del(argc,argv,1);
 	else
     	del(argc,argv,0);
 	}
 
-	else if(strcmp(argv[1],"UPDATE")==0){
+	else if(strcmp(argv[0],"UPDATE")==0){
 	if(argc>5)//ada where apa gak
     	upd(argc,argv,1);
 	else
