@@ -10,6 +10,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <dirent.h>
+#include <sys/time.h>
+#include <time.h>
 #define PORT 8080
 
 char* adr="/DB/";
@@ -50,6 +52,8 @@ int upd(int argc,char* argv[],int mode);
 int selects(int argc,char* argv[], int mode);
 int parse(int argc,char* argv[]);
 void dml(char str[]) ;
+char* getTimestamp() ;
+void create_log(char str[]) ;
 // ---------
 
 int main() {
@@ -164,15 +168,19 @@ int main() {
                 strcpy(msg, "WORKING DATABASE UNDEFINED") ;
         }
         else if (!strncmp(buffer, "SELECT", 6) || !strncmp(buffer, "DELETE", 6) || !strncmp(buffer, "INSERT", 6) || !strncmp(buffer, "UPDATE", 6)) {
-            isDML = 1 ;
-            dml(buffer) ;
+            if (strcmp(currentWorkingDB, "...")) {
+                isDML = 1 ;
+                dml(buffer) ;
+            }
+            else 
+                strcpy(msg, "WORKING DATABASE UNDEFINED") ;
         }
         else {
             strcpy(msg, "QUERY NOT IDENTIFIED") ;
         }
         if (!isDML)
             send(new_socket, msg, strlen(msg), 0) ;
-
+        create_log(buffer) ; 
         isDML = 0 ;
     }
 }
@@ -181,6 +189,24 @@ int main() {
 //----------------------------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------------------------
+
+void create_log(char str[]) {
+    FILE* file = fopen("query.log", "a") ;
+    fprintf(file, "%s:%s:%s\n", getTimestamp(), login.id, str) ;
+    fclose(file) ;
+}
+
+char* getTimestamp() {
+    time_t t;
+    time(&t);
+    struct tm *timeinfo = localtime(&t);
+
+    char timestamp[50] ; bzero(timestamp, 50) ;
+    char* ptr ;
+    sprintf(timestamp, "%02d-%02d-%02d %d:%02d:%02d", timeinfo->tm_year+1900, timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec );
+    ptr = timestamp ;
+    return ptr;
+}
 
 void dml(char str[]) {
     int argc ;
